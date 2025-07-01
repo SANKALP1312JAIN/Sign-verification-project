@@ -1,73 +1,92 @@
-# Welcome to your Lovable project
+# SigniSure: Deep Learning-Based Signature Authentication
 
-## Project info
+SigniSure is a Flask-based web application for real-time signature verification using deep learning. It leverages a custom Siamese Neural Network trained on the [CEDAR Signature Dataset](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset) to distinguish between genuine and forged signatures with high accuracy.
 
-**URL**: https://lovable.dev/projects/2b6ecff9-7104-43ad-bd9c-4eb82e73cebb
+---
 
-## How can I edit this code?
+## 🚀 Features
+- **Signature Verification:** Upload two signatures and verify if they are genuine or forged.
+- **Signature Detection:** Automatically detect signature regions in scanned documents or PDFs.
+- **PDF & Image Support:** Works with both image files and PDF documents.
+- **Modern Web UI:** Clean, responsive interface for easy use.
+- **Model Accuracy:** Achieves **87% accuracy** on the CEDAR test set.
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## 🧠 Model Details
+- **Architecture:** Siamese Neural Network with a custom CNN encoder.
+- **Training Dataset:** [CEDAR Signature Dataset](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset)
+- **Optimal Threshold:** 0.2602 (determined via ROC analysis)
+- **Performance:**
+  - Accuracy: 87%
+  - Precision, Recall, F1: See notebook for details
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/2b6ecff9-7104-43ad-bd9c-4eb82e73cebb) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+## 📦 Project Structure
+```
+├── app.py                  # Main Flask server
+├── signature_utils.py      # Signature processing utilities
+├── model_loader.py         # Model architecture & loading
+├── detect_signature.py     # Signature region detection
+├── requirements.txt        # Python dependencies
+├── templates/              # HTML templates (Jinja2)
+├── static/                 # Static files (CSS, images)
+├── uploads/                # Uploaded files (not tracked in git)
+├── best_signature_model.pth# Trained model weights (not in repo)
+└── README.md               # This file
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## ⚡ Quickstart
+1. **Clone the repository:**
+   ```sh
+   git clone https://github.com/GajananTongale/SigniSure.git
+   cd SigniSure
+   ```
+2. **Install dependencies:**
+   ```sh
+   pip install -r requirements.txt
+   ```
+3. **Download the CEDAR dataset:**
+   - [CEDAR Signature Dataset on Kaggle](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset)
+   - Place sample images in the appropriate folder if you want to retrain.
+4. **Run the Flask server:**
+   ```sh
+   python app.py
+   ```
+5. **Open your browser:**
+   - Go to `http://localhost:5000`
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 📝 Usage
+- **Verify Signatures:** Upload a genuine and a test signature to check authenticity.
+- **Detect Signature:** Upload a document or PDF to auto-detect signature regions.
+- **Auto-Detect in Uploaded PDFs:** Use the dropdown to process any previously uploaded PDF.
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+## 🛠️ Deployment
+- **Backend:** Deploy Flask app on [Render](https://render.com/), [Railway](https://railway.app/), or similar.
+- **Frontend:** Static files can be served via GitHub Pages (for React/static UI only).
+- **Note:** GitHub Pages does **not** support Python/Flask backend hosting.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## 📚 References
+- **Dataset:** [CEDAR Signature Dataset (Kaggle)](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset)
+- **Model:** Siamese Neural Network (see `model_loader.py` and notebook for details)
+- **License:** MIT
 
-Simply open [Lovable](https://lovable.dev/projects/2b6ecff9-7104-43ad-bd9c-4eb82e73cebb) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## 👤 Author
+- Gajanan Tongale
+- [GitHub](https://github.com/GajananTongale)
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📄 License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
