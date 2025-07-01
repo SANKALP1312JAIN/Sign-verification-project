@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Signatures - SigniSure{% endblock %}
+
+{% block extra_head %}
+<style>
+    .upload-area {
+        border: 2px dashed #d1d5db;
+        transition: all 0.3s ease;
+    }
+    .upload-area:hover {
+        border-color: #8b5cf6;
+        background-color: rgba(139, 92, 246, 0.05);
+    }
+    .upload-area.dragover {
+        border-color: #8b5cf6;
+        background-color: rgba(139, 92, 246, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12 fade-in-element">
+            <h1 class="text-4xl md:text-5xl font-light tracking-tight mb-6">
+                Verify <span class="glow-text">Signatures</span>
+            </h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Upload your genuine signature and the signature you want to verify. Our AI will analyze both signatures and provide you with detailed results.
+            </p>
+        </div>
+        <div class="grid lg:grid-cols-2 gap-8 mb-12">
+            <div class="glass-card p-6 rounded-xl fade-in-element">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Genuine Signature
+                </h3>
+                <div id="genuine-upload" class="upload-area rounded-lg p-8 text-center cursor-pointer">
+                    <input type="file" id="genuine-file" class="hidden" accept="image/*,.pdf">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="text-gray-600 mb-2">Click to upload or drag and drop</p>
+                    <p class="text-sm text-gray-500">PNG, JPG, PDF up to 10MB</p>
+                </div>
+                <div id="genuine-preview" class="hidden mt-4">
+                    <img id="genuine-image" class="w-full h-48 object-contain rounded-lg border" alt="Genuine signature preview">
+                </div>
+            </div>
+            <div class="glass-card p-6 rounded-xl fade-in-element">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    Signature to Verify
+                </h3>
+                <div id="test-upload" class="upload-area rounded-lg p-8 text-center cursor-pointer">
+                    <input type="file" id="test-file" class="hidden" accept="image/*,.pdf">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="text-gray-600 mb-2">Click to upload or drag and drop</p>
+                    <p class="text-sm text-gray-500">PNG, JPG, PDF up to 10MB</p>
+                </div>
+                <div id="test-preview" class="hidden mt-4">
+                    <img id="test-image" class="w-full h-48 object-contain rounded-lg border" alt="Test signature preview">
+                </div>
+            </div>
+        </div>
+        <div class="text-center mb-12 fade-in-element">
+            <button id="analyze-btn" class="neumorphism px-8 py-3 rounded-full hover:neon-glow transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+                Analyze Signatures
+            </button>
+        </div>
+        <div id="results" class="hidden fade-in-element">
+            <div class="glass-card p-8 rounded-xl">
+                <h3 class="text-2xl font-semibold mb-6">Analysis Results</h3>
+                <div id="result-content" class="grid md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div id="result-badge" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold"></div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Distance Score:</span>
+                                <span id="distance-score" class="font-semibold">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Threshold:</span>
+                                <span id="threshold" class="font-semibold">0.28</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-100 rounded-lg p-4">
+                            <h4 class="font-semibold mb-2">Analysis Summary</h4>
+                            <p id="analysis-summary" class="text-gray-600">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 pt-8 border-t border-gray-200">
+                    <h4 class="font-semibold mb-4">Detailed Analysis</h4>
+                    <div id="detailed-analysis" class="text-gray-600"></div>
+                </div>
+            </div>
+        </div>
+        <div id="loading" class="hidden text-center py-12">
+            <div class="inline-flex items-center">
+                <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-neon-purple" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-lg">Analyzing signatures...</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let genuineFile = null;
+let testFile = null;
+document.getElementById('genuine-upload').addEventListener('click', () => {
+    document.getElementById('genuine-file').click();
+});
+document.getElementById('test-upload').addEventListener('click', () => {
+    document.getElementById('test-file').click();
+});
+['genuine-upload', 'test-upload'].forEach(id => {
+    const element = document.getElementById(id);
+    element.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        element.classList.add('dragover');
+    });
+    element.addEventListener('dragleave', () => {
+        element.classList.remove('dragover');
+    });
+    element.addEventListener('drop', (e) => {
+        e.preventDefault();
+        element.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileUpload(files[0], id === 'genuine-upload' ? 'genuine' : 'test');
+        }
+    });
+});
+document.getElementById('genuine-file').addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFileUpload(e.target.files[0], 'genuine');
+    }
+});
+document.getElementById('test-file').addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFileUpload(e.target.files[0], 'test');
+    }
+});
+function handleFileUpload(file, type) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+    fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (type === 'genuine') {
+                genuineFile = data.filename;
+                showPreview(file, 'genuine');
+            } else {
+                testFile = data.filename;
+                showPreview(file, 'test');
+            }
+            updateAnalyzeButton();
+        } else {
+            alert('Upload failed: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Upload failed. Please try again.');
+    });
+}
+function showPreview(file, type) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        if (type === 'genuine') {
+            document.getElementById('genuine-preview').classList.remove('hidden');
+            document.getElementById('genuine-image').src = e.target.result;
+        } else {
+            document.getElementById('test-preview').classList.remove('hidden');
+            document.getElementById('test-image').src = e.target.result;
+        }
+    };
+    reader.readAsDataURL(file);
+}
+function updateAnalyzeButton() {
+    const button = document.getElementById('analyze-btn');
+    if (genuineFile && testFile) {
+        button.disabled = false;
+    } else {
+        button.disabled = true;
+    }
+}
+document.getElementById('analyze-btn').addEventListener('click', () => {
+    if (!genuineFile || !testFile) return;
+    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('results').classList.add('hidden');
+    const data = {
+        genuine_file: genuineFile,
+        test_file: testFile
+    };
+    fetch('/api/verify', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('loading').classList.add('hidden');
+        if (data.success) {
+            showResults(data.result);
+        } else {
+            alert('Analysis failed: ' + data.error);
+        }
+    })
+    .catch(error => {
+        document.getElementById('loading').classList.add('hidden');
+        console.error('Error:', error);
+        alert('Analysis failed. Please try again.');
+    });
+});
+function showResults(result) {
+    const resultsDiv = document.getElementById('results');
+    const badge = document.getElementById('result-badge');
+    const distanceScore = document.getElementById('distance-score');
+    const analysisSummary = document.getElementById('analysis-summary');
+    if (result.is_genuine) {
+        badge.className = 'inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-800';
+        badge.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>GENUINE';
+    } else {
+        badge.className = 'inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-red-100 text-red-800';
+        badge.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>FORGED';
+    }
+    distanceScore.textContent = result.distance.toFixed(4);
+    if (result.is_genuine) {
+        analysisSummary.textContent = `The signature appears to be genuine. The distance score of ${result.distance.toFixed(4)} is below the threshold of ${result.threshold}.`;
+    } else {
+        analysisSummary.textContent = `The signature appears to be forged. The distance score of ${result.distance.toFixed(4)} is above the threshold of ${result.threshold}.`;
+    }
+    const detailedAnalysis = document.getElementById('detailed-analysis');
+    detailedAnalysis.innerHTML = `
+        <p><strong>Distance Score:</strong> ${result.distance.toFixed(4)}</p>
+        <p><strong>Threshold:</strong> ${result.threshold}</p>
+        <p><strong>Decision:</strong> ${result.decision}</p>
+        <br>
+        <p><strong>Technical Details:</strong></p>
+        <ul class="list-disc list-inside space-y-1">
+            <li>Feature extraction completed successfully</li>
+            <li>Pairwise distance calculation performed</li>
+            <li>Threshold comparison executed</li>
+        </ul>
+    `;
+    resultsDiv.classList.remove('hidden');
+}
+</script>
+{% endblock %}
+
+</rewritten_file>

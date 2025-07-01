@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Detect Signature Regions - SigniSure{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8 fade-in-element">
+            <h1 class="text-3xl md:text-4xl font-light tracking-tight mb-4">Detect Signature Regions</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">Upload a scanned document (image or PDF) and automatically detect potential signature regions. Bounding boxes and confidence scores will be shown.</p>
+        </div>
+        <form id="detect-form" enctype="multipart/form-data" class="glass-card p-8 rounded-xl mb-8" method="post" action="/detect-signature" >
+            <div class="mb-4">
+                <input type="file" name="document" id="document" accept="image/*,.pdf" required class="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-neon-purple/10 file:text-neon-purple hover:file:bg-neon-purple/20" />
+            </div>
+            <button type="submit" class="neumorphism px-8 py-3 rounded-full hover:neon-glow transition-all duration-300 font-semibold">Detect Signatures</button>
+        </form>
+        <div class="mb-8">
+            <form id="auto-detect-form" class="glass-card p-8 rounded-xl mb-8" method="post" action="/detect-signature-auto">
+                <label for="pdf_file" class="block mb-2 font-semibold">Auto-Detect Signature in Uploaded PDF:</label>
+                <select name="pdf_file" id="pdf_file" class="block w-full mb-4 p-2 border rounded">
+                    {% for pdf in uploaded_pdfs %}
+                    <option value="{{ pdf }}">{{ pdf }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="neumorphism px-8 py-3 rounded-full hover:neon-glow transition-all duration-300 font-semibold">Auto Detect</button>
+            </form>
+        </div>
+        {% if image_data %}
+        <div class="mb-6 text-center">
+            <h2 class="text-xl font-semibold mb-2">Detected Regions</h2>
+            <img src="data:image/png;base64,{{ image_data }}" alt="Detected Signatures" class="mx-auto rounded shadow-lg border" style="max-width:100%;height:auto;">
+        </div>
+        {% if candidates %}
+        <div class="glass-card p-6 rounded-xl">
+            <h3 class="text-lg font-semibold mb-4">Signature Candidates</h3>
+            <ul class="space-y-2">
+                {% for cand in candidates %}
+                <li>
+                    <span class="font-mono">bbox={{ cand.bbox }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
