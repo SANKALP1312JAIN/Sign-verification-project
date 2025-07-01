@@ -17,10 +17,13 @@ SigniSure is a Flask-based web application for real-time signature verification 
 - **Architecture:** Siamese Neural Network with a custom CNN encoder.
 - **Training Dataset:** [CEDAR Signature Dataset](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset)
 - **Optimal Threshold:** 0.2602 (determined via ROC analysis)
-- **Performance:**
-  - Accuracy: 87%
-  - Precision, Recall, F1: See notebook for details
-
+✅ Model Performance:
+   • Accuracy: 87.9%
+   • Precision: 82.1%
+   • Recall: 96.1%
+   • F1-Score: 88.5%
+   • ROC AUC: 95.7%
+  
 ---
 
 ## 📦 Project Structure
@@ -85,6 +88,8 @@ SigniSure is a Flask-based web application for real-time signature verification 
 ## 👤 Author
 - Gajanan Tongale
 - [GitHub](https://github.com/GajananTongale)
+- Sankalp Jain
+-[Github](https://github.com/SANKALP1312JAIN)
 
 ---
 
