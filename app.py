@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
+from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, send_file, make_response
 import os
 import uuid
 from werkzeug.utils import secure_filename
@@ -12,6 +12,7 @@ from io import BytesIO
 from signature_utils import verify_new_signature, extract_signature_from_pdf, detect_signature_regions
 import fitz
 import sys
+import tempfile
 sys.path.append('.')  # Ensure current directory is in path for imports
 from model_loader import load_model, preprocess_signature
 
@@ -228,6 +229,125 @@ def detect_signature_auto():
             _, buf = cv2.imencode('.png', cv2.cvtColor(vis_img, cv2.COLOR_RGB2BGR))
             image_data = base64.b64encode(buf.tobytes()).decode('utf-8')
     return render_template('detect_signature.html', image_data=image_data, candidates=candidates, uploaded_pdfs=uploaded_pdfs)
+
+@app.route('/get-pdf-page-image')
+def get_pdf_page_image():
+    pdf_file = request.args.get('pdf_file')
+    if not pdf_file:
+        return jsonify({'error': 'No PDF file specified'}), 400
+    pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], pdf_file)
+    if not os.path.exists(pdf_path):
+        return jsonify({'error': 'File not found'}), 404
+    pdf = fitz.open(pdf_path)
+    page = pdf[0]
+    pix = page.get_pixmap()  # type: ignore[attr-defined]
+    img = Image.open(BytesIO(pix.tobytes("png"))).convert('RGB')
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return jsonify({'image': f'data:image/png;base64,{img_str}'})
+
+@app.route('/extract-signature-area', methods=['POST'])
+def extract_signature_area():
+    pdf_file = request.form.get('pdf_file')
+    x = int(request.form.get('x', 0))
+    y = int(request.form.get('y', 0))
+    width = int(request.form.get('width', 0))
+    height = int(request.form.get('height', 0))
+    uploaded_pdfs = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) if f.lower().endswith('.pdf')]
+    image_data = None
+    candidates = None
+    if pdf_file and width > 0 and height > 0:
+        pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], pdf_file)
+        if os.path.exists(pdf_path):
+            pdf = fitz.open(pdf_path)
+            page = pdf[0]
+            pix = page.get_pixmap()  # type: ignore[attr-defined]
+            img = Image.open(BytesIO(pix.tobytes("png"))).convert('RGB')
+            # Crop the selected area
+            cropped = img.crop((x, y, x + width, y + height))
+            buffered = BytesIO()
+            cropped.save(buffered, format="PNG")
+            img_str = base64.b64encode(buffered.getvalue()).decode()
+            image_data = img_str
+    # Show the cropped image as the result
+    return render_template('detect_signature.html', image_data=image_data, candidates=None, uploaded_pdfs=uploaded_pdfs)
+
+@app.route('/verify-cropped-signature', methods=['POST'])
+def verify_cropped_signature():
+    uploaded_pdfs = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) if f.lower().endswith('.pdf')]
+    image_data = None
+    candidates = None
+    result = None
+    error = None
+    # Get cropped image (base64)
+    cropped_image_data = request.form.get('cropped_image_data')
+    real_signature_file = request.files.get('real_signature')
+    if cropped_image_data and real_signature_file:
+        # Save cropped image to temp file
+        cropped_bytes = base64.b64decode(cropped_image_data)
+        cropped_path = os.path.join(tempfile.gettempdir(), f"cropped_{uuid.uuid4()}.png")
+        with open(cropped_path, 'wb') as f:
+            f.write(cropped_bytes)
+        # Save real signature to temp file
+        real_sig_filename = secure_filename(real_signature_file.filename or "real_signature.png")
+        real_sig_path = os.path.join(tempfile.gettempdir(), f"real_{uuid.uuid4()}_{real_sig_filename}")
+        real_signature_file.save(real_sig_path)
+        # Run verification
+        result, error = verify_new_signature(model, real_sig_path, cropped_path)
+        # Clean up temp files (optional)
+        # os.remove(cropped_path)
+        # os.remove(real_sig_path)
+        # Show result on the same detect_signature page
+        return render_template('detect_signature.html', image_data=cropped_image_data, candidates=None, uploaded_pdfs=uploaded_pdfs, verification_result=result, verification_error=error)
+    return render_template('detect_signature.html', image_data=None, candidates=None, uploaded_pdfs=uploaded_pdfs, verification_result=None, verification_error='Missing input files.')
+
+@app.route('/generate-report', methods=['POST'])
+def generate_report():
+    decision = request.form.get('decision', 'N/A')
+    distance = request.form.get('distance', 'N/A')
+    threshold = request.form.get('threshold', 'N/A')
+
+    # Create a new PDF in memory
+    pdf_buffer = BytesIO()
+    doc = fitz.open()
+    page = doc.new_page(width=595, height=842)  # A4 size
+
+    # Paths to images
+    logo_path = os.path.join('static', 'signisure_logo.png')
+    signature_path = os.path.join('static', 'signisure_signature.png')
+
+    # Add logo at the top
+    if os.path.exists(logo_path):
+        rect_logo = fitz.Rect(170, 30, 425, 130)
+        page.insert_image(rect_logo, filename=logo_path)
+
+    # Title
+    page.insert_text((180, 150), "SigniSure Signature Verification Report", fontsize=18, fontname="helv", color=(0,0,0))
+
+    # Main content
+    y = 200
+    page.insert_text((70, y), f"Prediction: {decision}", fontsize=15, fontname="helv", color=(0,0.5,0) if decision.lower()=='genuine' else (0.8,0,0))
+    y += 30
+    page.insert_text((70, y), f"Distance Score: {distance}", fontsize=13, fontname="helv", color=(0,0,0))
+    y += 25
+    page.insert_text((70, y), f"Threshold Used: {threshold}", fontsize=13, fontname="helv", color=(0,0,0))
+    y += 40
+    # Warnings and info
+    warning_text = "Warning: This result is based on AI model predictions. For legal or official purposes, human verification is recommended.\n\nThe model may be sensitive to image quality, cropping, and signature clarity. Always double-check results in critical scenarios."
+    page.insert_textbox(fitz.Rect(70, y, 525, y+80), warning_text, fontsize=11, fontname="helv", color=(0.7,0.2,0.2))
+    y += 100
+    # Footer text
+    page.insert_text((70, 780), "Generated by SigniSure - AI-Powered Signature Verification", fontsize=10, fontname="helv", color=(0.3,0.3,0.3))
+    # Add signature image at the bottom
+    if os.path.exists(signature_path):
+        rect_sig = fitz.Rect(200, 700, 400, 780)
+        page.insert_image(rect_sig, filename=signature_path)
+
+    doc.save(pdf_buffer)
+    doc.close()
+    pdf_buffer.seek(0)
+    return send_file(pdf_buffer, as_attachment=True, download_name="signisure_report.pdf", mimetype="application/pdf")
 
 if __name__ == '__main__':
     # Load your model here

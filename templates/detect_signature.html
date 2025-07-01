@@ -24,10 +24,42 @@
                 <button type="submit" class="neumorphism px-8 py-3 rounded-full hover:neon-glow transition-all duration-300 font-semibold">Auto Detect</button>
             </form>
         </div>
+        <div class="mb-8">
+            <form id="manual-select-form" class="glass-card p-8 rounded-xl mb-8" method="post" action="/detect-signature-manual">
+                <label for="pdf_file_manual" class="block mb-2 font-semibold">Manually Select Signature Area in Uploaded PDF:</label>
+                <select name="pdf_file_manual" id="pdf_file_manual" class="block w-full mb-4 p-2 border rounded">
+                    {% for pdf in uploaded_pdfs %}
+                    <option value="{{ pdf }}">{{ pdf }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" id="show-pdf-page" class="neumorphism px-8 py-3 rounded-full hover:neon-glow transition-all duration-300 font-semibold">Show PDF Page</button>
+            </form>
+            <div id="pdf-image-container" style="display:none;">
+                <h4 class="font-semibold mb-2">Draw a rectangle to select the signature area:</h4>
+                <div style="position:relative; display:inline-block;">
+                    <img id="pdf-page-image" src="" alt="PDF Page" style="max-width:100%; border:1px solid #ccc;" />
+                    <canvas id="selection-canvas" style="position:absolute; left:0; top:0;"></canvas>
+                </div>
+                <form id="extract-area-form" method="post" action="/extract-signature-area">
+                    <input type="hidden" name="pdf_file" id="selected-pdf-file" />
+                    <input type="hidden" name="x" id="bbox-x" />
+                    <input type="hidden" name="y" id="bbox-y" />
+                    <input type="hidden" name="width" id="bbox-width" />
+                    <input type="hidden" name="height" id="bbox-height" />
+                    <button type="submit" class="neumorphism px-8 py-3 rounded-full hover:neon-glow transition-all duration-300 font-semibold mt-4">Extract Selected Area</button>
+                </form>
+            </div>
+        </div>
         {% if image_data %}
         <div class="mb-6 text-center">
-            <h2 class="text-xl font-semibold mb-2">Detected Regions</h2>
-            <img src="data:image/png;base64,{{ image_data }}" alt="Detected Signatures" class="mx-auto rounded shadow-lg border" style="max-width:100%;height:auto;">
+            <h2 class="text-xl font-semibold mb-2">Cropped Signature Area</h2>
+            <img src="data:image/png;base64,{{ image_data }}" alt="Cropped Signature" class="mx-auto rounded shadow-lg border" style="max-width:100%;height:auto;">
+            <form id="verify-cropped-form" method="post" action="/verify-cropped-signature" enctype="multipart/form-data" class="mt-6">
+                <input type="hidden" name="cropped_image_data" value="{{ image_data }}" />
+                <label for="real_signature" class="block mb-2 font-semibold">Upload Real (Genuine) Signature Image:</label>
+                <input type="file" name="real_signature" id="real_signature" accept="image/*" required class="block w-full mb-4 p-2 border rounded" />
+                <button type="submit" class="neumorphism px-8 py-3 rounded-full hover:neon-glow transition-all duration-300 font-semibold">Verify Signature</button>
+            </form>
         </div>
         {% if candidates %}
         <div class="glass-card p-6 rounded-xl">
@@ -41,7 +73,113 @@
             </ul>
         </div>
         {% endif %}
+        {% if verification_result or verification_error %}
+        <div class="mt-8 text-center">
+            <div class="glass-card p-8 rounded-2xl shadow-xl inline-block border-2 border-neon-purple fade-in-element">
+                <h3 class="text-2xl font-bold mb-4 glow-text">Verification Result</h3>
+                {% if verification_error %}
+                    <div class="text-red-600 font-semibold mb-2">{{ verification_error }}</div>
+                {% endif %}
+                {% if verification_result %}
+                    <div class="mb-4">
+                        <span class="font-bold text-lg">Decision:</span>
+                        <span class="{{ 'text-green-600' if verification_result.is_genuine else 'text-red-600' }} font-bold text-lg">
+                            {{ verification_result.decision }}
+                        </span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="font-bold">Distance Score:</span>
+                        <span>{{ '%.4f'|format(verification_result.distance) }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="font-bold">Threshold:</span>
+                        <span>{{ verification_result.threshold }}</span>
+                    </div>
+                    <form method="post" action="/generate-report" class="mt-6 inline-block">
+                        <input type="hidden" name="decision" value="{{ verification_result.decision }}" />
+                        <input type="hidden" name="distance" value="{{ '%.4f'|format(verification_result.distance) }}" />
+                        <input type="hidden" name="threshold" value="{{ verification_result.threshold }}" />
+                        <button type="submit" class="neumorphism px-8 py-3 rounded-full hover:neon-glow transition-all duration-300 font-semibold text-white" style="background: linear-gradient(90deg, #8b5cf6 60%, #ec4899 100%); box-shadow: 0 2px 12px rgba(139,92,246,0.15);">Generate Report (PDF)</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
         {% endif %}
     </div>
 </div>
+<script>
+// Manual PDF page display and selection logic
+const showPdfBtn = document.getElementById('show-pdf-page');
+const pdfSelect = document.getElementById('pdf_file_manual');
+const pdfImageContainer = document.getElementById('pdf-image-container');
+const pdfPageImage = document.getElementById('pdf-page-image');
+const selectionCanvas = document.getElementById('selection-canvas');
+const extractForm = document.getElementById('extract-area-form');
+const selectedPdfFile = document.getElementById('selected-pdf-file');
+const bboxX = document.getElementById('bbox-x');
+const bboxY = document.getElementById('bbox-y');
+const bboxWidth = document.getElementById('bbox-width');
+const bboxHeight = document.getElementById('bbox-height');
+
+showPdfBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    const pdfFile = pdfSelect.value;
+    if (!pdfFile) return;
+    fetch(`/get-pdf-page-image?pdf_file=${encodeURIComponent(pdfFile)}`)
+        .then(res => res.json())
+        .then(data => {
+            pdfPageImage.src = data.image;
+            pdfImageContainer.style.display = 'block';
+            selectedPdfFile.value = pdfFile;
+            setTimeout(setupCanvas, 200); // Wait for image to load
+        });
+});
+
+function setupCanvas() {
+    selectionCanvas.width = pdfPageImage.width;
+    selectionCanvas.height = pdfPageImage.height;
+    selectionCanvas.style.width = pdfPageImage.width + 'px';
+    selectionCanvas.style.height = pdfPageImage.height + 'px';
+    let ctx = selectionCanvas.getContext('2d');
+    let startX, startY, isDrawing = false;
+    let rect = {};
+    selectionCanvas.onmousedown = function(e) {
+        isDrawing = true;
+        const rectBounds = selectionCanvas.getBoundingClientRect();
+        startX = e.clientX - rectBounds.left;
+        startY = e.clientY - rectBounds.top;
+    };
+    selectionCanvas.onmousemove = function(e) {
+        if (!isDrawing) return;
+        const rectBounds = selectionCanvas.getBoundingClientRect();
+        let mouseX = e.clientX - rectBounds.left;
+        let mouseY = e.clientY - rectBounds.top;
+        ctx.clearRect(0, 0, selectionCanvas.width, selectionCanvas.height);
+        ctx.strokeStyle = '#00f';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(startX, startY, mouseX - startX, mouseY - startY);
+    };
+    selectionCanvas.onmouseup = function(e) {
+        isDrawing = false;
+        const rectBounds = selectionCanvas.getBoundingClientRect();
+        let endX = e.clientX - rectBounds.left;
+        let endY = e.clientY - rectBounds.top;
+        rect = {
+            x: Math.round(Math.min(startX, endX)),
+            y: Math.round(Math.min(startY, endY)),
+            width: Math.round(Math.abs(endX - startX)),
+            height: Math.round(Math.abs(endY - startY))
+        };
+        ctx.clearRect(0, 0, selectionCanvas.width, selectionCanvas.height);
+        ctx.strokeStyle = '#00f';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+        bboxX.value = rect.x;
+        bboxY.value = rect.y;
+        bboxWidth.value = rect.width;
+        bboxHeight.value = rect.height;
+    };
+}
+</script>
 {% endblock %} 
