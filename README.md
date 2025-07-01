@@ -1,123 +1,114 @@
+Here's an enhanced and more presentable version of your project documentation:
+
 ```markdown
-# SigniSure: Deep Learning-Based Signature Authentication
+# 🔐 SigniSure: Deep Learning-Based Signature Authentication System
 
-SigniSure is a Flask-based web application for real-time signature verification using deep learning. It leverages a custom Siamese Neural Network trained on the [CEDAR Signature Dataset](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset) to distinguish between genuine and forged signatures with high accuracy.
-
----
-
-## 🚀 Features
-- **Signature Verification:** Upload two signatures and verify if they are genuine or forged.
-- **Signature Detection:** Automatically detect signature regions in scanned documents or PDFs.
-- **PDF & Image Support:** Works with both image files and PDF documents.
-- **Modern Web UI:** Clean, responsive interface for easy use.
-- **Model Accuracy:** Achieves **87% accuracy** on the CEDAR test set.
+SigniSure is a Flask-powered web application for real-time signature verification using deep learning. It employs a custom Siamese Neural Network trained on the [CEDAR Signature Dataset](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset) to authenticate signatures with high precision.
 
 ---
 
-## 🧠 Model Details
-- **Architecture:** Siamese Neural Network with a custom CNN encoder.
-- **Training Dataset:** [CEDAR Signature Dataset](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset)
-- **Optimal Threshold:** 0.2602 (determined via ROC analysis)  
-✅ **Model Performance:**  
-   • Accuracy: 87.9%  
-   • Precision: 82.1%  
-   • Recall: 96.1%  
-   • F1-Score: 88.5%  
-   • ROC AUC: 95.7%
+## ✨ Key Features
+- **Signature Verification:** Compare two signatures to determine authenticity
+- **Signature Detection:** Automatically locate signatures in documents/PDFs
+- **Multi-Format Support:** Process both image files and PDF documents
+- **Intuitive Interface:** Clean, responsive web UI
+- **High Accuracy:** 87.9% test accuracy on CEDAR dataset
 
 ---
 
-## 📦 Project Structure
+## 🧠 Model Architecture & Performance
+| Metric          | Value   |
+|-----------------|---------|
+| **Accuracy**    | 87.9%   |
+| **Precision**   | 82.1%   |
+| **Recall**      | 96.1%   |
+| **F1-Score**    | 88.5%   |
+| **ROC AUC**     | 95.7%   |
+
+**Technical Details:**
+- **Network Type:** Siamese Neural Network with custom CNN encoder
+- **Training Data:** [CEDAR Signature Dataset](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset)
+- **Optimal Threshold:** 0.2602 (determined via ROC analysis)
+
+---
+
+## 📁 Project Structure
 ```
-
-├── app.py                  # Main Flask server
-├── signature\_utils.py      # Signature processing utilities
-├── model\_loader.py         # Model architecture & loading
-├── detect\_signature.py     # Signature region detection
+SigniSure/
+├── app.py                  # Flask application entry point
+├── signature_utils.py      # Signature processing functions
+├── model_loader.py         # Model architecture & loading
+├── detect_signature.py     # Signature region detection
 ├── requirements.txt        # Python dependencies
 ├── templates/              # HTML templates (Jinja2)
-├── static/                 # Static files (CSS, images)
-├── uploads/                # Uploaded files (not tracked in git)
-├── best\_signature\_model.pth# Trained model weights (not in repo)
-└── README.md               # This file
-
-````
+├── static/                 # CSS, images, JavaScript
+├── uploads/                # User-uploaded files (.gitignore)
+├── best_signature_model.pth # Trained model weights
+└── README.md               # Project documentation
+```
 
 ---
 
-## ⚡ Quickstart
-1. **Clone the repository:**
-   ```sh
+## 🚀 Quick Start Guide
+1. **Clone repository:**
+   ```
    git clone https://github.com/GajananTongale/SigniSure.git
    cd SigniSure
-````
+   ```
 
 2. **Install dependencies:**
-
-   ```sh
+   ```
    pip install -r requirements.txt
    ```
-3. **Download the CEDAR dataset:**
 
-   * [CEDAR Signature Dataset on Kaggle](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset)
-   * Place sample images in the appropriate folder if you want to retrain.
-4. **Run the Flask server:**
+3. **Download dataset:**
+   - Obtain [CEDAR Dataset](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset)
+   - Place in appropriate directory for retraining
 
-   ```sh
+4. **Launch application:**
+   ```
    python app.py
    ```
-5. **Open your browser:**
 
-   * Go to `http://localhost:5000`
-
----
-
-## 📝 Usage
-
-* **Verify Signatures:** Upload a genuine and a test signature to check authenticity.
-* **Detect Signature:** Upload a document or PDF to auto-detect signature regions.
-* **Auto-Detect in Uploaded PDFs:** Use the dropdown to process any previously uploaded PDF.
+5. **Access in browser:**  
+   Navigate to `http://localhost:5000`
 
 ---
 
-## 🛠️ Deployment
-
-* **Backend:** Deploy Flask app on [Render](https://render.com/), [Railway](https://railway.app/), or similar.
-* **Frontend:** Static files can be served via GitHub Pages (for React/static UI only).
-* **Note:** GitHub Pages does **not** support Python/Flask backend hosting.
-
----
-
-## 📚 References
-
-* **Dataset:** [CEDAR Signature Dataset (Kaggle)](https://www.kaggle.com/datasets/shreelakshmigp/cedardataset)
-* **Model:** Siamese Neural Network (see `model_loader.py` and notebook for details)
+## 💻 Application Usage
+- **Signature Verification:** Upload reference and test signatures
+- **Signature Detection:** Process documents/PDFs to locate signatures
+- **PDF Processing:** Use dropdown to analyze previously uploaded PDFs
 
 ---
 
-## 👥 Collaborators
+## 🌐 Deployment Options
+| Platform       | Type          | Notes                          |
+|----------------|---------------|--------------------------------|
+| **Render**     | Full stack    | Supports Flask backend         |
+| **Railway**    | Full stack    | Easy Python deployment         |
+| **GitHub Pages**| Frontend only | Static files only (no backend) |
 
-This project was collaboratively developed by:
-
-* **Sankalp Jain** – Delhi Technological University (DTU)
-  [GitHub: SANKALP1312JAIN](https://github.com/SANKALP1312JAIN)
-
-* **Gajanan Tongale** – Vishwakarma Institute of Technology, Pune (VIT-Pune)
-  [GitHub: GajananTongale](https://github.com/GajananTongale)
-
-> Developed during their internship under the Information Systems (IS) Department at
-> **Indian Oil Corporation Limited – Panipat Refinery**
+> **Note:** Python backend requires WSGI-compatible hosting
 
 ---
 
-## 📄 License
+## 👥 Development Team
+| Member              | Institution                          | GitHub Profile                          |
+|---------------------|--------------------------------------|-----------------------------------------|
+| **Sankalp Jain**    | Delhi Technological University (DTU) | [SANKALP1312JAIN](https://github.com/SANKALP1312JAIN) |
+| **Gajanan Tongale** | VIT-Pune                             | [GajananTongale](https://github.com/GajananTongale) |
 
-© 2024 Sankalp Jain (DTU) and Gajanan Tongale (VIT-Pune)
+**Internship Sponsorship:**  
+Developed at **Indian Oil Corporation Limited – Panipat Refinery** (Information Systems Department)
+
+---
+
+## 📜 License & Copyright
+© 2024 Sankalp Jain & Gajanan Tongale  
 Developed during internship at Indian Oil Corporation Limited – Panipat Refinery
 
-This project is **subject to copyright** and is intended for educational and demonstrative purposes only.
-**Reproduction, redistribution, or commercial use without explicit permission is strictly prohibited.**
-Not to be copied, republished, or reused in any form without prior consent from the authors.
-
-All rights reserved.
-
+> **Copyright Notice:**  
+> This project is for educational/demonstration purposes only.  
+> **All rights reserved.** Reproduction, redistribution, or commercial use without explicit permission is strictly prohibited.
+```
