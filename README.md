@@ -91,7 +91,7 @@ Developed at Indian Oil Corporation Limited – Panipat Refinery (IS Dept.)
 
 ## 📜 License
 
-© 2024 Sankalp Jain & Gajanan Tongale  
+© 2024 Sankalp Jain 
 Developed during internship at Indian Oil Corporation Limited – Panipat Refinery
 
 > **This project is for educational/demonstration purposes only.  
