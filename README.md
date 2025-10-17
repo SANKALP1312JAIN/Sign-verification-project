@@ -84,8 +84,7 @@ SigniSure/
 
 | Member              | Institution                          | GitHub Profile                          |
 |---------------------|--------------------------------------|-----------------------------------------|
-| Sankalp Jain        | Delhi Technological University (DTU) | [SANKALP1312JAIN](https://github.com/SANKALP1312JAIN) |
-| Gajanan Tongale     | VIT-Pune                             | [GajananTongale](https://github.com/GajananTongale)   |
+| Sankalp Jain        | Delhi Technological University (DTU) | [SANKALP1312JAIN](https://github.com/SANKALP1312JAIN) 
 
 **Internship:**  
 Developed at Indian Oil Corporation Limited – Panipat Refinery (IS Dept.)
